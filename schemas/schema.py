@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String, Date, Time, ForeignKey, Sequence, Enum as SqlEnum
+from sqlalchemy import Table, Column, Integer, String, Date, Time, Boolean, ForeignKey, Sequence, Enum as SqlEnum
 from .utils.enums import StatusEnum
 
 Base = declarative_base()
@@ -9,8 +9,9 @@ class User(Base):
     
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
     username = Column(String(16), nullable=False)
-    password_hash = Column(String(16), nullable=False)
+    password_hash = Column(String(80), nullable=False)
     email = Column(String(60), nullable=False, unique=True)
+    is_verified = Column(Boolean, nullable=False, default=False)
 
 
 class Habit(Base):
