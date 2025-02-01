@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from config.db import session
 from schemas.schema import User
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 from .utils import _mail, _token
-from .auth import _hash_password
+from .auth import _hash_password, get_current_user
+from typing import Annotated
 
 
 router = APIRouter()
@@ -77,3 +78,16 @@ def verify_email(token: str):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"message": "User not found"}
             )
+
+
+@router.get("/me")
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    """Gets current user"""
+    email = current_user.email
+    username = current_user.username
+    return {
+        "username": current_user.username,
+        "email": current_user.email
+    }
