@@ -53,7 +53,7 @@ def create_habit(habit_data: CreateHabit,  current_user: Annotated[User, Depends
         session.add(new_habit)
         session.commit()
         return {
-            "message": f"Habit {new_habit.name} created successfully"
+            "message": f"{new_habit.name} created successfully"
         }
     except Exception as e:
         raise HTTPException(
