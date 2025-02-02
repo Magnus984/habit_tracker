@@ -14,7 +14,7 @@ class User(Base):
     email = Column(String(60), nullable=False, unique=True)
     is_verified = Column(Boolean, nullable=False, default=False)
     habits = relationship(
-        "Habit", back_populates='user', cascade="delete"
+        "Habit", back_populates='users', cascade="delete"
     )
 
 
@@ -32,7 +32,7 @@ class Habit(Base):
     )
     habit_logs = relationship(
         "Habit_log",
-        back_populates="habit",
+        back_populates="habits",
         cascade="delete"
         )
 
@@ -44,4 +44,4 @@ class Habit_log(Base):
     date = Column(Date, nullable=False)
     status = Column(SqlEnum(StatusEnum), default="Not started")
     habit_id = Column(Integer, ForeignKey("habits.id"))
-    habit = relationship("Habit", back_populates="habit_logs")
+    habits = relationship("Habit", back_populates="habit_logs")
