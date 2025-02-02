@@ -28,6 +28,8 @@ class GetLog(BaseModel):
     date: date
     status: StatusEnum
 
+class UpdateLog(BaseModel):
+    status: StatusEnum
 
 @router.post("{habit_id}", status_code=status.HTTP_201_CREATED)
 def log_habit(habit_id, current_user: Annotated[User, Depends(get_current_user)], body_data: CreateLog):
@@ -94,6 +96,27 @@ def get_one(habit_log_id, current_user: Annotated[User, Depends(get_current_user
             date=habit_log.date,
             status=habit_log.status
         )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "resource cannot be found"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@router.patch("/habit_log_id", status_code=status.HTTP_200_OK)
+def update_status(habit_log_id, body_data: UpdateLog, current_user: Annotated[User, Depends(get_current_user)]):
+    try:
+        habit_log = session.query(Habit_log).filter(Habit_log.id == habit_log_id).one()
+        habit_log.status = body_data.status
+        session.commit()
+        session.refresh(habit_log)
+        return {
+            "message": "Update done successfully"
+        }
     except NoResultFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
