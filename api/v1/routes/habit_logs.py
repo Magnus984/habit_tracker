@@ -127,3 +127,24 @@ def update_status(habit_log_id, body_data: UpdateLog, current_user: Annotated[Us
             detail=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@router.delete("/habit_log_id", status_code=status.HTTP_200_OK)
+def remove_log(habit_log_id, current_user: Annotated[User, Depends(get_current_user)]):
+    try:
+        habit_log = session.query(Habit_log).filter(Habit_log.id == habit_log_id).one()
+        session.delete(habit_log)
+        session.commit()
+        return {
+            "message": "Habit Log Deleted"
+        }
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "resource cannot be found"}
+        )
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
