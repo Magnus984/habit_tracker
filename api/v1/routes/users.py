@@ -48,7 +48,7 @@ def register(user: RegisterUser):
         token = _token.generate_token(user.email, "email_verification", 10)
         verification_url = f"http://localhost:8000/api/v1/user/verify?token={token}"
         try:
-            _mail.send_verification_email(user.email, token)
+            _mail.send_verification_email(user.email, verification_url)
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
