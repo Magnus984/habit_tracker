@@ -1,6 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, Integer, String, Date, Time, Boolean, ForeignKey, Sequence, Enum as SqlEnum
 from .utils.enums import StatusEnum
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -12,6 +13,9 @@ class User(Base):
     password_hash = Column(String(80), nullable=False)
     email = Column(String(60), nullable=False, unique=True)
     is_verified = Column(Boolean, nullable=False, default=False)
+    habits = relationship(
+        "Habit", back_populates='user', cascade="delete"
+    )
 
 
 class Habit(Base):
@@ -20,9 +24,17 @@ class Habit(Base):
     id = Column(Integer, Sequence('habit_id_seq'), primary_key=True)
     name = Column(String(60), nullable=False)
     description = Column(String(255), nullable=False)
-    frequency = Column(Integer, nullable=False)
+    frequency = Column(String(15), nullable=False)
     reminder_time = Column(Time(timezone=False), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+    users = relationship(
+        "User", back_populates='habits'
+    )
+    habit_logs = relationship(
+        "Habit_log",
+        back_populates="habit",
+        cascade="delete"
+        )
 
 
 class Habit_log(Base):
@@ -30,5 +42,6 @@ class Habit_log(Base):
 
     id = Column(Integer, Sequence('habit_log_id_seq'), primary_key=True)
     date = Column(Date, nullable=False)
-    status = Column(SqlEnum(StatusEnum), nullable=True)
+    status = Column(SqlEnum(StatusEnum), default="Not started")
     habit_id = Column(Integer, ForeignKey("habits.id"))
+    habit = relationship("Habit", back_populates="habit_logs")
