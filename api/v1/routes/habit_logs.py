@@ -19,12 +19,18 @@ from config.db import session
 
 router = APIRouter()
 
-class CeateLog(BaseModel):
+class CreateLog(BaseModel):
     date: date
     status: StatusEnum
 
-@router.post("/log/{habit_id}", status_code=status.HTTP_201_CREATED)
-def log_habit(habit_id, current_user: Annotated[User, Depends(get_current_user)], body_data: CeateLog):
+class GetLog(BaseModel):
+    id: int
+    date: date
+    status: StatusEnum
+
+
+@router.post("{habit_id}", status_code=status.HTTP_201_CREATED)
+def log_habit(habit_id, current_user: Annotated[User, Depends(get_current_user)], body_data: CreateLog):
     try:
         habit = session.query(Habit).filter(Habit.id == habit_id, Habit.user_id == current_user.id).first()
         if not habit:
@@ -43,4 +49,58 @@ def log_habit(habit_id, current_user: Annotated[User, Depends(get_current_user)]
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"message": "resource not found"}
+        )
+
+@router.get("/all", status_code=status.HTTP_200_OK)
+def get_all_logs(current_user: Annotated[User, Depends(get_current_user)]):
+    print("I am inside the endpoint")
+    try:
+        habit_logs = (
+            session.query(Habit_log)
+            .join(Habit, Habit_log.habit_id == Habit.id)
+            .filter(Habit.user_id == current_user.id)
+            .all()
+        )
+        if not habit_logs:
+            raise NoResultFound
+        habit_log_response = [GetLog(
+            id=habit_log.id,
+            date=habit_log.date,
+            status=habit_log.status
+        ) for habit_log in habit_logs]
+        return habit_log_response
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "resource cannot be found"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@router.get("/{habit_log_id}", status_code=status.HTTP_200_OK)
+def get_one(habit_log_id, current_user: Annotated[User, Depends(get_current_user)]):
+    try:
+        habit_log = (
+            session.query(Habit_log)
+            .join(Habit, Habit_log.habit_id == Habit.id)
+            .filter(Habit.user_id == current_user.id, Habit_log.id == habit_log_id)
+            .one()
+        )
+        return GetLog(
+            id=habit_log.id,
+            date=habit_log.date,
+            status=habit_log.status
+        )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "resource cannot be found"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
