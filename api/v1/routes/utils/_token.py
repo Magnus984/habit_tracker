@@ -1,6 +1,7 @@
 import jwt
 from datetime import datetime, timedelta
 from config.config import settings
+from fastapi import HTTPException, status
 
 SECRET_KEY = settings.secret_key
 
